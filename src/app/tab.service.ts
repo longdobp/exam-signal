@@ -1,4 +1,6 @@
-import { Injectable, signal, computed, Type } from '@angular/core';
+import { Injectable, signal, computed, Type, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TabModel } from './tab.model';
 
 export interface Tab {
   id: string;
@@ -8,37 +10,41 @@ export interface Tab {
 
 @Injectable({ providedIn: 'root' })
 export class TabService {
-  tabs = signal<Tab[]>([]);
-  selectedIndex = signal(0);
+  public router = inject(Router);
+  private activeRoute = inject(ActivatedRoute);
 
-  activeTab = computed(() => this.tabs()[this.selectedIndex()] ?? null);
+  // signals
+  readonly tabs = signal<TabModel[]>([]);
+  readonly currentIndex = signal(0);
 
-  openTab(newTab: Tab) {
-    const existingIndex = this.tabs().findIndex(t => t.id === newTab.id);
-
-    if (existingIndex > -1) {
-      this.selectedIndex.set(existingIndex);
-    } else {
-      this.tabs.update(list => [...list, newTab]);
-      this.selectedIndex.set(this.tabs().length - 1);
+  addTab(tab: TabModel) {
+    const exists = this.tabs().some((t) => t.path === tab.path);
+    if (!exists) {
+      this.tabs.update((tabs) => [...tabs, tab]);
     }
+    this.currentIndex.set(this.findIndex(tab.path));
   }
 
-  closeTab(id: string) {
-    const currentTabs = this.tabs();
-    const idx = currentTabs.findIndex(t => t.id === id);
+  removeTab(index: number) {
+    const tabs = this.tabs();
+    if (tabs.length <= 1) return;
 
-    if (idx > -1) {
-      const newTabs = currentTabs.filter(t => t.id !== id);
-      this.tabs.set(newTabs);
+    const newTabs = tabs.filter((_, i) => i !== index);
+    this.tabs.set(newTabs);
 
-      if (this.selectedIndex() >= newTabs.length) {
-        this.selectedIndex.set(newTabs.length - 1);
-      }
+    let newIndex = this.currentIndex();
+    if (index === this.currentIndex()) {
+      newIndex = index > 0 ? index - 1 : 0;
+      this.router.navigateByUrl(newTabs[newIndex].path);
+    } else if (index < this.currentIndex()) {
+      newIndex = this.currentIndex() - 1;
     }
+    this.currentIndex.set(newIndex);
   }
 
-  selectTab(index: number) {
-    this.selectedIndex.set(index);
+  findIndex(path: string): number {
+    const idx = this.tabs().findIndex((t) => t.path === path);
+    this.currentIndex.set(idx);
+    return idx;
   }
 }

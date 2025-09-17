@@ -2,30 +2,44 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TabService } from './tab.service';
-import { DashboardComponent } from './dashboard.component';
-import { UsersComponent } from './users.component';
-import { ReportsComponent } from './reports.component';
 import { Router } from '@angular/router';
+import { TabModel } from './tab.model';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
   imports: [CommonModule],
-  
+
   template: `
-    <ul class="space-y-2">
-      <li><button (click)="open('dashboard', 'Dashboard', '/dashboard')">Dashboard</button></li>
-      <li><button (click)="open('users','Users','/users')">Users</button></li>
-      <li><button (click)="open('reports','Reports','/reports')">Reports</button></li>
+    <ul class="menu">
+      <li (click)="openTab('Trang chủ', '/home')">🏠 Trang chủ</li>
+      <li (click)="openTab('Người dùng', '/users')">👤 Người dùng</li>
+      <li (click)="openTab('Báo cáo', '/reports')">📊 Báo cáo</li>
     </ul>
   `,
+  styles: [
+    `
+      .menu {
+        list-style: none;
+        padding: 0;
+      }
+      .menu li {
+        cursor: pointer;
+        padding: 8px 12px;
+        border-bottom: 1px solid #ddd;
+      }
+      .menu li:hover {
+        background: #f5f5f5;
+      }
+    `,
+  ],
 })
 export class MenuComponent {
   private tabService = inject(TabService);
-  private router = inject(Router);
 
-  open(id: string, title: string, route: string) {
-    this.tabService.openTab({ id, title, route });
-    this.router.navigateByUrl(route);
+  openTab(title: string, path: string) {
+    const tab: TabModel = { title, path, snapshotArray: [] };
+    this.tabService.addTab(tab);
+    this.tabService.router.navigateByUrl(path);
   }
 }

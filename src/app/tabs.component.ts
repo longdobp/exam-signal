@@ -9,48 +9,53 @@ import { TabService } from './tab.service';
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="flex space-x-2 border-b mb-4">
-      <button
+    <div class="tabs">
+      <div
         *ngFor="let tab of tabService.tabs(); let i = index"
-        (click)="activateTab(i)"
-        class="px-4 py-2 border-b-2"
-        [class.border-blue-500]="tabService.selectedIndex() === i"
-        [class.text-blue-500]="tabService.selectedIndex() === i"
+        class="tab"
+        [class.active]="i === tabService.currentIndex()"
+        (click)="selectTab(tab.path, i)"
       >
         {{ tab.title }}
-        <span
-          class="ml-2 text-red-500 cursor-pointer"
-          (click)="closeTab(tab.id, $event)"
-        >
-          x
-        </span>
-      </button>
-    </div>
-
-    <div class="p-4 border rounded bg-gray-50">
-      <router-outlet></router-outlet>
+        <span class="close" (click)="closeTab(i, $event)">×</span>
+      </div>
     </div>
   `,
+  styles: [
+    `
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid #ccc;
+        background: #fafafa;
+      }
+      .tab {
+        padding: 6px 12px;
+        cursor: pointer;
+        position: relative;
+      }
+      .tab.active {
+        background: #fff;
+        border: 1px solid #ccc;
+        border-bottom: none;
+      }
+      .close {
+        margin-left: 8px;
+        color: red;
+        cursor: pointer;
+      }
+    `,
+  ],
 })
 export class TabsComponent {
   tabService = inject(TabService);
-  router = inject(Router);
 
-  activateTab(index: number) {
-    this.tabService.selectTab(index);
-    const tab = this.tabService.activeTab();
-    if (tab) {
-      this.router.navigateByUrl(tab.route);
-    }
+  selectTab(path: string, index: number) {
+    this.tabService.currentIndex.set(index);
+    this.tabService.router.navigateByUrl(path);
   }
 
-  closeTab(id: string, event: MouseEvent) {
+  closeTab(index: number, event: MouseEvent) {
     event.stopPropagation();
-    const active = this.tabService.activeTab();
-    this.tabService.closeTab(id);
-
-    if (active?.id === id && this.tabService.activeTab()) {
-      this.router.navigateByUrl(this.tabService.activeTab()!.route);
-    }
+    this.tabService.removeTab(index);
   }
 }
