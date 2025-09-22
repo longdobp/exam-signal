@@ -4,7 +4,7 @@ import { UsersComponent } from './users.component';
 import { ReportsComponent } from './reports.component';
 
 export const routes: Routes = [
-  { path: 'home', component: DashboardComponent },
+  { path: 'home', title: 'Home', component: DashboardComponent, },
   { path: 'users', component: UsersComponent },
   { path: 'reports', component: ReportsComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },

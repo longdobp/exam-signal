@@ -1,11 +1,8 @@
 <div class="flex h-screen">
-  <!-- Sidebar -->
-  <div class="w-48 border-r p-4">
-    <app-menu></app-menu>
-  </div>
-
+  <app-navbar></app-navbar>
   <!-- Tabs -->
   <div class="flex-1 p-4">
     <app-tabs></app-tabs>
+    <router-outlet></router-outlet>
   </div>
 </div>
